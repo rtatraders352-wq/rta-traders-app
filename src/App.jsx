@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from "react";
 import {
   RecaptchaVerifier,
@@ -21,16 +22,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const verifier = useRef(null);
 
-  async function findCustomer(number) {
-    const q = query(
-      collection(db, "customers"),
-      where("mobile", "==", number),
-      where("status", "==", "active")
-    );
-    const result = await getDocs(q);
-    return result.empty ? null : result.docs[0].data();
-  }
-
   async function sendOTP() {
     const number = mobile.trim();
 
@@ -43,14 +34,6 @@ export default function App() {
     setMessage("");
 
     try {
-      const approvedCustomer = await findCustomer(number);
-
-      if (!approvedCustomer) {
-        setMessage("Your account is not approved by RTA Traders.");
-        setLoading(false);
-        return;
-      }
-
       if (!verifier.current) {
         verifier.current = new RecaptchaVerifier(
           auth,
@@ -66,9 +49,10 @@ export default function App() {
       );
 
       setConfirmation(result);
-      setMessage("OTP sent successfully. Please check your SMS.");
+      setMessage("OTP sent successfully. Please enter OTP.");
     } catch (error) {
       setMessage("OTP error: " + error.message);
+
       if (verifier.current) {
         verifier.current.clear();
         verifier.current = null;
@@ -89,20 +73,32 @@ export default function App() {
 
     try {
       const result = await confirmation.confirm(otp.trim());
-      const number = mobile.trim();
-      const approvedCustomer = await findCustomer(number);
+      const phoneNumber = result.user.phoneNumber;
 
-      if (!approvedCustomer) {
-        await signOut(auth);
-        setMessage("Your account is not approved.");
-        setLoading(false);
-        return;
+      if (!phoneNumber) {
+        throw new Error("Phone number not found.");
       }
 
-      setCustomer(approvedCustomer);
-      setMessage("Login successful!");
+      const q = query(
+        collection(db, "customers"),
+        where("mobile", "==", phoneNumber),
+        where("status", "==", "active")
+      );
+
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        await signOut(auth);
+        setCustomer(null);
+        setMessage("Your account is not approved by RTA Traders.");
+      } else {
+        setCustomer(snapshot.docs[0].data());
+        setMessage("Login successful!");
+      }
     } catch (error) {
-      setMessage("OTP verification failed. Please try again.");
+      await signOut(auth).catch(() => {});
+      setCustomer(null);
+      setMessage("Login error: " + error.message);
     }
 
     setLoading(false);
@@ -137,9 +133,9 @@ export default function App() {
       <main style={{
         maxWidth: "500px",
         margin: "auto",
-        padding: "20px"    
-    }}>
-      <p>Welcome to RTA Traders</p>
+        padding: "20px"
+      }}>
+        <p>Welcome to RTA Traders</p>
 
         <div style={{
           background: "white",
@@ -177,8 +173,10 @@ export default function App() {
                     }}
                   />
 
-                  <div id="recaptcha-container"
-                    style={{ marginTop: "15px" }} />
+                  <div
+                    id="recaptcha-container"
+                    style={{ marginTop: "15px" }}
+                  />
 
                   <button
                     onClick={sendOTP}
@@ -216,7 +214,10 @@ export default function App() {
               )}
 
               {message && (
-                <p style={{ marginTop: "15px", overflowWrap: "anywhere" }}>
+                <p style={{
+                  marginTop: "15px",
+                  overflowWrap: "anywhere"
+                }}>
                   {message}
                 </p>
               )}
