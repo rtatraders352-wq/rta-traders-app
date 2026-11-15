@@ -1,0 +1,36 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #17243a;
+}
+
+button, input {
+  font: inherit;
+}
+
+header {
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+}
+
+h1, h2, h3, p {
+  margin-top: 0;
+}
+
+input {
+  border: 1px solid #ccd5e0;
+  border-radius: 8px;
+}
+
+button {
+  cursor: pointer;
+}
+
+main {
+  max-width: 600px;
+  margin: auto;
+}
