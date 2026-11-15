@@ -137,10 +137,9 @@ export default function App() {
       <main style={{
         maxWidth: "500px",
         margin: "auto",
-        padding: "20px"
-      }}>
-        <h2>Assalamu Alaikum!</h2>
-        <p>Welcome to RTA Traders</p>
+        padding: "20px"    
+    }}>
+      <p>Welcome to RTA Traders</p>
 
         <div style={{
           background: "white",
