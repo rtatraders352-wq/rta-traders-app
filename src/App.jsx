@@ -160,18 +160,24 @@ export default function App() {
               {!confirmation ? (
                 <>
                   <input
-                    type="tel"
-                    value={mobile}
-                    onChange={(e) => setMobile(e.target.value)}
-                    placeholder="Enter 10-digit mobile number"
-                    maxLength={10}
-                    style={{
-                      width: "100%",
-                      padding: "13px",
-                      border: "1px solid #ccd5e0",
-                      borderRadius: "8px"
-                    }}
-                  />
+  type="tel"
+  value={mobile}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setMobile(value);
+  }}
+  placeholder="Enter 10-digit mobile number"
+  maxLength={10}
+  inputMode="numeric"
+  style={{
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "13px",
+    border: "1px solid #ccd5e0",
+    borderRadius: "8px",
+    fontSize: "16px"
+  }}
+/>
 
                   <div
                     id="recaptcha-container"
