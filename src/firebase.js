@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBAKNZxXDjYRMZje1Y1e583ZVkCkAQPRV4U",
+  apiKey: "AIzaSyBAKNZxXDjYRMZje1e583ZVkCkAQPRV4U",
   authDomain: "rta-traders-cf0b5.firebaseapp.com",
   projectId: "rta-traders-cf0b5",
   storageBucket: "rta-traders-cf0b5.firebasestorage.app",
