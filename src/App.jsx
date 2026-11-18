@@ -1,5 +1,33 @@
 import React from "react";
 
+const categories = [
+  {
+    name: "Wilson Products",
+    subtitle: "Premium CP Products",
+    icon: "🚿"
+  },
+  {
+    name: "Joint Plus Products",
+    subtitle: "PTMT Products",
+    icon: "🚰"
+  },
+  {
+    name: "Accessories",
+    subtitle: "All Plumbing Accessories",
+    icon: "🔧",
+    items: [
+      "Health Faucet",
+      "Shower",
+      "Connection Pipe",
+      "Bottle Trap",
+      "Flush Tank",
+      "UPVC / CPVC Solvent",
+      "Union Ball Valve",
+      "SS Jali"
+    ]
+  }
+];
+
 export default function App() {
   return (
     <div style={{
@@ -12,68 +40,70 @@ export default function App() {
       <header style={{
         background: "#0b1f3a",
         color: "white",
-        padding: "25px 20px"
+        padding: "28px 20px"
       }}>
-        <h1 style={{ margin: 0 }}>RTA TRADERS</h1>
+        <h1>RTA TRADERS</h1>
         <p>Wholesale Customer App</p>
-        <p>Welcome to RTA Traders</p>
+        <p>Your Wholesale Business Partner</p>
       </header>
 
       <main style={{ padding: "20px" }}>
 
-        <h2>Our Categories</h2>
+        <h2>Welcome to RTA Traders</h2>
+        <h3>Our Product Categories</h3>
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: "12px"
-        }}>
-
-          {[
-            "PTMT Fittings",
-            "CP Fittings",
-            "UPVC Products",
-            "CPVC Products",
-            "PVC Products",
-            "Bathroom Accessories"
-          ].map((item) => (
-            <div key={item} style={{
-              background: "white",
-              padding: "25px 10px",
-              borderRadius: "12px",
-              textAlign: "center",
-              fontWeight: "bold",
-              boxShadow: "0 3px 10px #00000010"
+        {categories.map((category) => (
+          <div key={category.name} style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: "14px",
+            marginBottom: "16px",
+            boxShadow: "0 3px 12px #00000010"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "15px"
             }}>
-              {item}
+              <span style={{ fontSize: "38px" }}>
+                {category.icon}
+              </span>
+              <div>
+                <h3 style={{ margin: 0 }}>
+                  {category.name}
+                </h3>
+                <p style={{ color: "#64748b" }}>
+                  {category.subtitle}
+                </p>
+              </div>
             </div>
-          ))}
 
-        </div>
-
-        <h2 style={{ marginTop: "30px" }}>
-          Our Brands
-        </h2>
-
-        <div style={{
-          background: "white",
-          padding: "20px",
-          borderRadius: "12px"
-        }}>
-          <h3>Joint Plus</h3>
-          <h3>Wilson</h3>
-        </div>
+            {category.items && (
+              <div style={{ marginTop: "12px" }}>
+                {category.items.map((item) => (
+                  <p key={item} style={{
+                    padding: "9px",
+                    background: "#f2f5fa",
+                    borderRadius: "7px"
+                  }}>
+                    {item}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
 
         <div style={{
           background: "#0b1f3a",
           color: "white",
-          padding: "20px",
-          borderRadius: "12px",
-          marginTop: "25px",
-          textAlign: "center"
+          padding: "22px",
+          borderRadius: "14px",
+          textAlign: "center",
+          marginTop: "25px"
         }}>
-          <h3>RTA TRADERS</h3>
-          <p>Your Wholesale Business Partner</p>
+          <h2>RTA TRADERS</h2>
+          <p>Wholesale Business Partner</p>
           <p>Malegaon, Maharashtra</p>
         </div>
 
