@@ -1,34 +1,59 @@
-import React from "react";
 
-const categories = [
-  {
-    name: "Wilson Products",
-    subtitle: "Premium CP Products",
-    icon: "🚿"
-  },
-  {
-    name: "Joint Plus Products",
-    subtitle: "PTMT Products",
-    icon: "🚰"
-  },
-  {
-    name: "Accessories",
-    subtitle: "All Plumbing Accessories",
-    icon: "🔧",
-    items: [
-      "Health Faucet",
-      "Shower",
-      "Connection Pipe",
-      "Bottle Trap",
-      "Flush Tank",
-      "UPVC / CPVC Solvent",
-      "Union Ball Valve",
-      "SS Jali"
-    ]
-  }
-];
+import React, { useEffect, useState } from "react";
+import {
+  collection,
+  getDocs,
+  query,
+  where
+} from "firebase/firestore";
+import { db } from "./firebase.js";
 
 export default function App() {
+  const [products, setProducts] = useState([]);
+  const [category, setCategory] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const q = query(
+          collection(db, "products"),
+          where("active", "==", true)
+        );
+
+        const snapshot = await getDocs(q);
+
+        setProducts(
+          snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+        );
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProducts();
+  }, []);
+
+  const filteredProducts = products.filter(product => {
+    if (category === "All") return true;
+
+    if (category === "Wilson") {
+      return product.brand === "Wilson";
+    }
+
+    if (category === "Joint Plus") {
+      return product.brand === "Joint Plus";
+    }
+
+    return product.category === "Accessories";
+  });
+
   return (
     <div style={{
       minHeight: "100vh",
@@ -40,70 +65,123 @@ export default function App() {
       <header style={{
         background: "#0b1f3a",
         color: "white",
-        padding: "28px 20px"
+        padding: "25px 20px"
       }}>
         <h1>RTA TRADERS</h1>
         <p>Wholesale Customer App</p>
         <p>Your Wholesale Business Partner</p>
       </header>
 
-      <main style={{ padding: "20px" }}>
+      <main style={{ padding: "18px" }}>
 
-        <h2>Welcome to RTA Traders</h2>
-        <h3>Our Product Categories</h3>
+        <h2>Our Products</h2>
 
-        {categories.map((category) => (
-          <div key={category.name} style={{
-            background: "white",
-            padding: "20px",
-            borderRadius: "14px",
-            marginBottom: "16px",
-            boxShadow: "0 3px 12px #00000010"
-          }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "15px"
+        <div style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "8px"
+        }}>
+          {[
+            ["All", "All Products"],
+            ["Wilson", "Wilson"],
+            ["Joint Plus", "Joint Plus"],
+            ["Accessories", "Accessories"]
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setCategory(value)}
+              style={{
+                padding: "12px",
+                border: "none",
+                borderRadius: "8px",
+                background:
+                  category === value ? "#0b1f3a" : "white",
+                color:
+                  category === value ? "white" : "#17243a"
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {loading && <p>Loading products...</p>}
+
+        {error && (
+          <p style={{ color: "red" }}>
+            Error: {error}
+          </p>
+        )}
+
+        {!loading && !error && filteredProducts.length === 0 && (
+          <p>No products available in this category.</p>
+        )}
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: "12px",
+          marginTop: "20px"
+        }}>
+          {filteredProducts.map(product => (
+            <div key={product.id} style={{
+              background: "white",
+              padding: "12px",
+              borderRadius: "12px",
+              boxShadow: "0 3px 10px #00000010"
             }}>
-              <span style={{ fontSize: "38px" }}>
-                {category.icon}
-              </span>
-              <div>
-                <h3 style={{ margin: 0 }}>
-                  {category.name}
-                </h3>
-                <p style={{ color: "#64748b" }}>
-                  {category.subtitle}
-                </p>
-              </div>
-            </div>
 
-            {category.items && (
-              <div style={{ marginTop: "12px" }}>
-                {category.items.map((item) => (
-                  <p key={item} style={{
-                    padding: "9px",
-                    background: "#f2f5fa",
-                    borderRadius: "7px"
-                  }}>
-                    {item}
-                  </p>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+              {product.image ? (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  style={{
+                    width: "100%",
+                    height: "130px",
+                    objectFit: "contain"
+                  }}
+                />
+              ) : (
+                <div style={{
+                  height: "130px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "#f2f5fa",
+                  fontSize: "35px"
+                }}>
+                  📦
+                </div>
+              )}
+
+              <h3 style={{ fontSize: "15px" }}>
+                {product.name}
+              </h3>
+
+              <p style={{ color: "#64748b" }}>
+                {product.brand}
+              </p>
+
+              <p>
+                MRP: ₹{product.mrp || "Price updating"}
+              </p>
+
+              <p style={{ fontSize: "12px" }}>
+                {product.description}
+              </p>
+            </div>
+          ))}
+        </div>
 
         <div style={{
           background: "#0b1f3a",
           color: "white",
-          padding: "22px",
-          borderRadius: "14px",
+          padding: "20px",
           textAlign: "center",
-          marginTop: "25px"
+          borderRadius: "12px",
+          marginTop: "30px"
         }}>
           <h2>RTA TRADERS</h2>
-          <p>Wholesale Business Partner</p>
           <p>Malegaon, Maharashtra</p>
         </div>
 
