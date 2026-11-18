@@ -1,250 +1,83 @@
-
-import React, { useRef, useState } from "react";
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  signOut
-} from "firebase/auth";
-import {
-  collection,
-  getDocs,
-  query,
-  where
-} from "firebase/firestore";
-import { auth, db } from "./firebase.js";
+import React from "react";
 
 export default function App() {
-  const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState("");
-  const [confirmation, setConfirmation] = useState(null);
-  const [customer, setCustomer] = useState(null);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const verifier = useRef(null);
-
-  async function sendOTP() {
-    const number = mobile.trim();
-
-    if (!/^[6-9]\d{9}$/.test(number)) {
-      setMessage("Please enter a valid 10-digit mobile number.");
-      return;
-    }
-
-    setLoading(true);
-    setMessage("");
-
-    try {
-      if (!verifier.current) {
-        verifier.current = new RecaptchaVerifier(
-          auth,
-          "recaptcha-container",
-          { size: "normal" }
-        );
-      }
-
-      const result = await signInWithPhoneNumber(
-        auth,
-        "+91" + number,
-        verifier.current
-      );
-
-      setConfirmation(result);
-      setMessage("OTP sent successfully. Please enter OTP.");
-    } catch (error) {
-      setMessage("OTP error: " + error.message);
-
-      if (verifier.current) {
-        verifier.current.clear();
-        verifier.current = null;
-      }
-    }
-
-    setLoading(false);
-  }
-
-  async function verifyOTP() {
-    if (!otp.trim()) {
-      setMessage("Please enter OTP.");
-      return;
-    }
-
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const result = await confirmation.confirm(otp.trim());
-      const phoneNumber = result.user.phoneNumber;
-
-      if (!phoneNumber) {
-        throw new Error("Phone number not found.");
-      }
-
-      const q = query(
-        collection(db, "customers"),
-        where("mobile", "==", phoneNumber),
-        where("status", "==", "active")
-      );
-
-      const snapshot = await getDocs(q);
-
-      if (snapshot.empty) {
-        await signOut(auth);
-        setCustomer(null);
-        setMessage("Your account is not approved by RTA Traders.");
-      } else {
-        setCustomer(snapshot.docs[0].data());
-        setMessage("Login successful!");
-      }
-    } catch (error) {
-      await signOut(auth).catch(() => {});
-      setCustomer(null);
-      setMessage("Login error: " + error.message);
-    }
-
-    setLoading(false);
-  }
-
-  async function logout() {
-    await signOut(auth);
-    setCustomer(null);
-    setConfirmation(null);
-    setOtp("");
-    setMobile("");
-    setMessage("You have logged out.");
-  }
-
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#f4f7fb",
+      background: "#f2f5fa",
       fontFamily: "Arial, sans-serif",
       color: "#17243a"
     }}>
+
       <header style={{
         background: "#0b1f3a",
         color: "white",
-        padding: "25px",
-        textAlign: "center"
+        padding: "25px 20px"
       }}>
-        <h1>RTA TRADERS</h1>
+        <h1 style={{ margin: 0 }}>RTA TRADERS</h1>
         <p>Wholesale Customer App</p>
+        <p>Welcome to RTA Traders</p>
       </header>
 
-      <main style={{
-        maxWidth: "500px",
-        margin: "auto",
-        padding: "20px"
-      }}>
-        <p>Welcome to RTA Traders</p>
+      <main style={{ padding: "20px" }}>
+
+        <h2>Our Categories</h2>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: "12px"
+        }}>
+
+          {[
+            "PTMT Fittings",
+            "CP Fittings",
+            "UPVC Products",
+            "CPVC Products",
+            "PVC Products",
+            "Bathroom Accessories"
+          ].map((item) => (
+            <div key={item} style={{
+              background: "white",
+              padding: "25px 10px",
+              borderRadius: "12px",
+              textAlign: "center",
+              fontWeight: "bold",
+              boxShadow: "0 3px 10px #00000010"
+            }}>
+              {item}
+            </div>
+          ))}
+
+        </div>
+
+        <h2 style={{ marginTop: "30px" }}>
+          Our Brands
+        </h2>
 
         <div style={{
           background: "white",
-          padding: "22px",
-          borderRadius: "12px",
-          marginTop: "20px",
-          boxShadow: "0 3px 12px #00000010"
+          padding: "20px",
+          borderRadius: "12px"
         }}>
-          {customer ? (
-            <>
-              <h3>Welcome, {customer.name}!</h3>
-              <p>Your account is active.</p>
-              <p>Mobile: {customer.mobile}</p>
-              <p>Address: {customer.address}</p>
-              <button onClick={logout}>Logout</button>
-            </>
-          ) : (
-            <>
-              <h3>Customer Login</h3>
-              <p>Login with your registered mobile number.</p>
-
-              {!confirmation ? (
-                <>
-                  <input
-  type="tel"
-  value={mobile}
-  onChange={(e) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setMobile(value);
-  }}
-  placeholder="Enter 10-digit mobile number"
-  maxLength={10}
-  inputMode="numeric"
-  style={{
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "13px",
-    border: "1px solid #ccd5e0",
-    borderRadius: "8px",
-    fontSize: "16px"
-  }}
-/>
-
-                  <div
-                    id="recaptcha-container"
-                    style={{ marginTop: "15px" }}
-                  />
-
-                  <button
-                    onClick={sendOTP}
-                    disabled={loading}
-                    style={buttonStyle}
-                  >
-                    {loading ? "Please wait..." : "Send OTP"}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p>OTP sent to +91 {mobile}</p>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter SMS OTP"
-                    maxLength={6}
-                    style={{
-                      width: "100%",
-                      padding: "13px",
-                      border: "1px solid #ccd5e0",
-                      borderRadius: "8px"
-                    }}
-                  />
-
-                  <button
-                    onClick={verifyOTP}
-                    disabled={loading}
-                    style={buttonStyle}
-                  >
-                    {loading ? "Verifying..." : "Verify OTP"}
-                  </button>
-                </>
-              )}
-
-              {message && (
-                <p style={{
-                  marginTop: "15px",
-                  overflowWrap: "anywhere"
-                }}>
-                  {message}
-                </p>
-              )}
-            </>
-          )}
+          <h3>Joint Plus</h3>
+          <h3>Wilson</h3>
         </div>
 
-        <h3 style={{ marginTop: "25px" }}>Our Brands</h3>
-        <p>Joint Plus | Wilson</p>
+        <div style={{
+          background: "#0b1f3a",
+          color: "white",
+          padding: "20px",
+          borderRadius: "12px",
+          marginTop: "25px",
+          textAlign: "center"
+        }}>
+          <h3>RTA TRADERS</h3>
+          <p>Your Wholesale Business Partner</p>
+          <p>Malegaon, Maharashtra</p>
+        </div>
+
       </main>
     </div>
   );
 }
-
-const buttonStyle = {
-  background: "#0b1f3a",
-  color: "white",
-  padding: "13px 25px",
-  border: "none",
-  borderRadius: "8px",
-  width: "100%",
-  marginTop: "18px",
-  cursor: "pointer"
-};
