@@ -44,7 +44,7 @@ export default function App() {
     if (category === "All") return true;
 
     if (category === "Wilson") {
-      return product.brand === "Wilson";
+  return product.brand === "WELSON";
     }
 
     if (category === "Joint Plus") {
